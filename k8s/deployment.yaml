@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finvista-rag
+  labels:
+    app: finvista-rag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: finvista-rag
+  template:
+    metadata:
+      labels:
+        app: finvista-rag
+    spec:
+      containers:
+        - name: finvista-rag
+          image: finvista-rag:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8501
+              name: http
+          envFrom:
+            - configMapRef:
+                name: finvista-config
+            - secretRef:
+                name: finvista-secrets
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+          livenessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 60
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /_stcore/health
+              port: 8501
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          volumeMounts:
+            - name: chroma-data
+              mountPath: /app/data/chroma_db
+            - name: upload-data
+              mountPath: /app/data/uploads
+      volumes:
+        - name: chroma-data
+          persistentVolumeClaim:
+            claimName: finvista-chroma-pvc
+        - name: upload-data
+          persistentVolumeClaim:
+            claimName: finvista-uploads-pvc

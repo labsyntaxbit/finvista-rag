@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.venv/
+venv/
+env/
+data/chroma_db/
+data/uploads/*
+!data/uploads/.gitkeep
+*.log
+.DS_Store
+.idea/
+.vscode/
+*.zip

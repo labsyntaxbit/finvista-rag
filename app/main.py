@@ -30,7 +30,41 @@ st.markdown(
         background: #f7fafc; border-left: 4px solid #3182ce;
         padding: 0.75rem; margin: 0.5rem 0; border-radius: 4px;
     }
-    </style>
+    
+    .metric-row{
+        display:flex;
+        gap:15px;
+        margin:20px 0;
+    }
+    
+    .metric-card{
+        flex:1;
+        background:white;
+        border-radius:12px;
+        padding:18px;
+        box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+    
+    .metric-title{
+        font-size:13px;
+        color:#6b7280;
+        font-weight:bold;
+    }
+    
+    .metric-value{
+        font-size:10px;
+        font-weight:bold;
+        color:#1a365d;
+        margin:8px 0;
+    }
+    
+    .metric-sub{
+        font-size:13px;
+        color:#6b7280;
+    }
+    
+        
+        </style>
     """,
     unsafe_allow_html=True,
 )
@@ -136,6 +170,28 @@ def render_sidebar():
         st.caption(f"LLM: {settings.llm_provider.upper()}")
         st.caption(f"Embeddings: {settings.embedding_model}")
 
+def render_metrics():
+    vector_store = get_vector_store()
+
+    docs = vector_store.list_documents()
+    chunk_count = vector_store.get_document_count()
+    db_status = "🟢 Operational" if chunk_count > 0 else "🟡 Empty"
+    session_msgs = len([m for m in st.session_state.messages if m["role"] == "user"])
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    with col1:
+        st.metric("📄 Documents", len(docs), "In knowledge base")
+
+    with col2:
+        st.metric("🧠 Indexed Chunks", chunk_count, "Vector embeddings")
+
+    with col3:
+        st.metric("💾 Vector DB", db_status)
+
+    with col4:
+        st.metric("💬 This Session", session_msgs, "Queries")
+
 
 def render_chat():
     st.markdown('<p class="main-header">📊 FinVista Intelligence Assistant</p>', unsafe_allow_html=True)
@@ -143,6 +199,8 @@ def render_chat():
         '<p class="sub-header">Ask questions about your enterprise financial documents</p>',
         unsafe_allow_html=True,
     )
+
+    render_metrics()
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
